@@ -1,0 +1,23 @@
+{
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/.dart_tool": true,
+    "**/.pub-cache": true
+  },
+  "search.exclude": {
+    "**/.pub-cache": true,
+    "**/build": true
+  },
+  "java.project.resourceFilters": [
+    "node_modules",
+    ".pub-cache",
+    ".dart_tool",
+    "build"
+  ],
+  "gradle.nestedProjects": false,
+  "java.compile.nullAnalysis.mode": "automatic"
+}

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:vibration/vibration.dart';
+
+import '../../../../core/utils/barcode_validator.dart';
 
 class ScannerPage extends StatefulWidget {
   const ScannerPage({super.key});
@@ -28,24 +31,26 @@ class _ScannerPageState extends State<ScannerPage> {
     final List<Barcode> barcodes = capture.barcodes;
 
     for (final barcode in barcodes) {
-      if (barcode.rawValue != null) {
-        _isScanned = true;
-        // Vibrate
-        final hasVibrator = await Vibration.hasVibrator();
-        if (hasVibrator == true) {
-          Vibration.vibrate();
-        }
+      final rawValue = validScannedBarcode(barcode.rawValue);
+      if (rawValue == null) continue;
 
-        if (mounted) {
-          context.pop(barcode.rawValue);
-        }
-        break; // Only take first one
+      _isScanned = true;
+      // Vibrate
+      final hasVibrator = await Vibration.hasVibrator();
+      if (hasVibrator == true) {
+        Vibration.vibrate();
       }
+
+      if (mounted) {
+        context.pop(rawValue);
+      }
+      break; // Only take first one
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
           leading: IconButton(
@@ -53,14 +58,13 @@ class _ScannerPageState extends State<ScannerPage> {
                 size: 28, color: Theme.of(context).primaryColor),
             onPressed: () => context.pop(),
           ),
-          title: const Text('Scan Barcode',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
+          title: Text(l10n.scanBarcode,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
       body: Stack(
         children: [
           MobileScanner(
             controller: controller,
             onDetect: _onDetect,
-            // Removed overlay property
           ),
           // Simple border overlay manually
           Container(
@@ -73,7 +77,6 @@ class _ScannerPageState extends State<ScannerPage> {
                 height: 250,
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.green, width: 2),
-                  // borderRadius: BorderRadius.circular(16),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(5.0),
@@ -100,14 +103,14 @@ class _ScannerPageState extends State<ScannerPage> {
               ),
             ),
           ),
-          const Positioned(
+          Positioned(
             bottom: 40,
             left: 0,
             right: 0,
             child: Text(
-              'Align barcode within frame',
+              l10n.alignBarcodeWithinFrame,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white, fontSize: 16),
+              style: const TextStyle(color: Colors.white, fontSize: 16),
             ),
           ),
         ],

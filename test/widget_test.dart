@@ -1,30 +1,30 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:billing_app/main.dart';
+import 'package:billing_app/core/localization/locale_cubit.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  group('LocaleCubit Tests', () {
+    test('initial locale defaults to English or Arabic', () {
+      final cubit = LocaleCubit();
+      expect(cubit.state, isA<Locale>());
+      expect(['en', 'ar'].contains(cubit.state.languageCode), isTrue);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('toggleLocale switches between en and ar', () {
+      final cubit = LocaleCubit();
+      cubit.setLocale(const Locale('en'));
+      expect(cubit.state.languageCode, 'en');
+      expect(cubit.isArabic, isFalse);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      cubit.toggleLocale();
+      expect(cubit.state.languageCode, 'ar');
+      expect(cubit.isArabic, isTrue);
+
+      cubit.toggleLocale();
+      expect(cubit.state.languageCode, 'en');
+      expect(cubit.isArabic, isFalse);
+    });
   });
 }

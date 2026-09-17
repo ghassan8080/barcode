@@ -2,6 +2,7 @@ import 'package:billing_app/core/widgets/input_label.dart';
 import 'package:billing_app/core/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../bloc/product_bloc.dart';
@@ -47,6 +48,7 @@ class _EditProductPageState extends State<EditProductPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
         appBar: AppBar(
           elevation: 0,
@@ -55,8 +57,8 @@ class _EditProductPageState extends State<EditProductPage> {
                 size: 32, color: Theme.of(context).primaryColor),
             onPressed: () => context.pop(),
           ),
-          title: const Text('Edit Product',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          title: Text(l10n.editProduct,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           centerTitle: true,
         ),
         body: SafeArea(
@@ -72,10 +74,10 @@ class _EditProductPageState extends State<EditProductPage> {
                     padding: const EdgeInsets.all(16),
                     margin: const EdgeInsets.only(bottom: 24),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                      color: AppTheme.primaryColor.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.1)),
+                          color: AppTheme.primaryColor.withOpacity(0.1)),
                     ),
                     child: Row(
                       children: [
@@ -85,12 +87,12 @@ class _EditProductPageState extends State<EditProductPage> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('BARCODE',
+                            Text(l10n.barcode.toUpperCase(),
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color: AppTheme.primaryColor
-                                        .withValues(alpha: 0.7))),
+                                        .withOpacity(0.7))),
                             const SizedBox(height: 2),
                             Text(widget.product.barcode,
                                 style: const TextStyle(
@@ -103,17 +105,17 @@ class _EditProductPageState extends State<EditProductPage> {
                     ),
                   ),
 
-                  const InputLabel(text: 'Product Name'),
+                  InputLabel(text: l10n.productName),
 
                   TextFormField(
                     initialValue: _name,
                     textCapitalization: TextCapitalization.words,
-                    validator: AppValidators.required('Please enter a name'),
+                    validator: AppValidators.required(l10n.pleaseEnterName),
                     onSaved: (value) => _name = value!,
                   ),
                   const SizedBox(height: 24),
 
-                  const InputLabel(text: 'Price'),
+                  InputLabel(text: l10n.price),
 
                   TextFormField(
                     initialValue: _price.toStringAsFixed(2),
@@ -137,7 +139,7 @@ class _EditProductPageState extends State<EditProductPage> {
         bottomNavigationBar: PrimaryButton(
           onPressed: _submit,
           icon: Icons.save,
-          label: 'Save Changes',
+          label: l10n.saveChanges,
         ));
   }
 }

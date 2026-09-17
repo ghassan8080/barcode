@@ -2,6 +2,7 @@ import 'package:billing_app/core/widgets/input_label.dart';
 import 'package:billing_app/core/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/shop.dart';
 import '../bloc/shop_bloc.dart';
@@ -77,17 +78,18 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Shop Details'),
+          title: Text(l10n.shopDetails),
         ),
         body: BlocConsumer<ShopBloc, ShopState>(
           listener: (context, state) {
             if (state is ShopLoaded) {
               _updateControllers(state.shop);
             } else if (state is ShopOperationSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('Shop details saved!'),
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(l10n.shopDetailsSaved),
                   backgroundColor: Colors.green));
               context.pop();
             } else if (state is ShopError) {
@@ -109,67 +111,67 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('General Information',
+                    Text(l10n.generalInformation,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.2,
-                          color: AppTheme.primaryColor.withValues(alpha: 0.8),
+                          color: AppTheme.primaryColor.withOpacity(0.8),
                         )),
                     const SizedBox(
                       height: 5,
                     ),
                     Text(
-                      'These details will appear on your digital and printed receipts.',
+                      l10n.receiptDetailsNote,
                       style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
                     const SizedBox(height: 24),
-                    const InputLabel(text: 'Shop Name'),
+                    InputLabel(text: l10n.shopName),
                     _buildTextField(
                       controller: _nameController,
-                      hint: 'e.g. QuickMart Superstore',
-                      validator: AppValidators.required('Required'),
+                      hint: l10n.shopNameHint,
+                      validator: AppValidators.required(l10n.required),
                     ),
                     const SizedBox(height: 15),
-                    const InputLabel(text: 'Address Line 1'),
+                    InputLabel(text: l10n.addressLine1),
                     _buildTextField(
                       controller: _address1Controller,
-                      hint: 'Samrajpet, Mecheri',
-                      validator: AppValidators.required('Required'),
+                      hint: l10n.addressLine1Hint,
+                      validator: AppValidators.required(l10n.required),
                     ),
                     const SizedBox(height: 15),
-                    const InputLabel(text: 'Address Line 2 (Optional)'),
+                    InputLabel(text: l10n.addressLine2),
                     _buildTextField(
                       controller: _address2Controller,
-                      hint: 'Salem - 636453',
+                      hint: l10n.addressLine2Hint,
                     ),
                     const SizedBox(height: 15),
-                    const InputLabel(text: 'Phone Number'),
+                    InputLabel(text: l10n.phoneNumber),
                     _buildTextField(
                       controller: _phoneController,
-                      hint: '+91 7010674588',
+                      hint: l10n.phoneNumberHint,
                       keyboardType: TextInputType.phone,
-                      validator: AppValidators.required('Required'),
+                      validator: AppValidators.required(l10n.required),
                     ),
                     const SizedBox(height: 15),
-                    const InputLabel(text: 'UPI ID'),
+                    InputLabel(text: l10n.upiId),
                     _buildTextField(
                       controller: _upiController,
-                      hint: 'dineshsowndar@oksbi',
+                      hint: l10n.upiIdHint,
                     ),
                     const SizedBox(height: 15),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const InputLabel(text: 'Receipt Footer Text'),
-                        Text('Max 150 chars',
+                        InputLabel(text: l10n.receiptFooterText),
+                        Text(l10n.maxChars,
                             style: TextStyle(
                                 fontSize: 11, color: Colors.grey[400])),
                       ],
                     ),
                     _buildTextField(
                       controller: _footerController,
-                      hint: 'Thank you, Visit again!!!',
+                      hint: l10n.receiptFooterHint,
                       maxLines: 2,
                       maxLength: 60,
                     ),
@@ -182,7 +184,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
         bottomNavigationBar: PrimaryButton(
           onPressed: _saveShop,
           icon: Icons.save,
-          label: 'Save Details',
+          label: l10n.saveDetails,
         ));
   }
 

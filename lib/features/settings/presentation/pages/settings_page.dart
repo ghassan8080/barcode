@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app_settings/app_settings.dart';
 
+import '../../../../core/localization/locale_cubit.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../shop/presentation/bloc/shop_bloc.dart';
 import '../bloc/printer_bloc.dart';
@@ -20,16 +22,16 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    // Re-initialize printer state whenever settings page opens
     context.read<PrinterBloc>().add(InitPrinterEvent());
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(l10n.settings,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -72,7 +74,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             boxShadow: [
                               BoxShadow(
                                 color: AppTheme.primaryColor
-                                    .withValues(alpha: 0.2),
+                                    .withOpacity(0.2),
                                 blurRadius: 15,
                                 spreadRadius: 5,
                               )
@@ -98,20 +100,20 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 24),
 
             // Management Section
-            _buildSectionHeader('Management'),
+            _buildSectionHeader(l10n.management),
             _buildListGroup(
               children: [
                 _buildListItem(
                   icon: Icons.qr_code_scanner,
-                  title: 'Products',
-                  subtitle: 'Manage stock and barcodes',
+                  title: l10n.products,
+                  subtitle: l10n.manageStockAndBarcodes,
                   onTap: () => context.push('/products'),
                 ),
                 _buildDivider(),
                 _buildListItem(
                   icon: Icons.storefront,
-                  title: 'Shop Details',
-                  subtitle: 'Edit business info & address',
+                  title: l10n.shopDetails,
+                  subtitle: l10n.editBusinessInfo,
                   onTap: () => context.push('/shop'),
                 ),
               ],
@@ -120,7 +122,7 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 24),
 
             // Hardware Section
-            _buildSectionHeader('Hardware'),
+            _buildSectionHeader(l10n.hardware),
             BlocConsumer<PrinterBloc, PrinterState>(
               listener: (context, state) {
                 if (state.errorMessage != null) {
@@ -128,8 +130,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       content: Text(state.errorMessage!),
                       backgroundColor: Colors.red));
                 } else if (state.status == PrinterStatus.connected) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Connected to printer'),
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(l10n.connectedToPrinter),
                       backgroundColor: Colors.green));
                 }
               },
@@ -138,13 +140,13 @@ class _SettingsPageState extends State<SettingsPage> {
                   children: [
                     _buildListItem(
                       icon: Icons.print,
-                      title: 'Print Device',
+                      title: l10n.printDevice,
                       subtitleWidget: Row(
                         children: [
                           Text(
                             state.connectedMac != null
-                                ? (state.connectedName ?? 'Printer connected')
-                                : 'No printer connected',
+                                ? (state.connectedName ?? l10n.printerConnected)
+                                : l10n.noPrinterConnected,
                             style: TextStyle(
                                 fontSize: 12, color: Colors.grey[500]),
                           ),
@@ -158,7 +160,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(color: Colors.teal[200]!)),
                               child: Text(
-                                'CONNECTED',
+                                l10n.connected,
                                 style: TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.bold,
@@ -205,12 +207,22 @@ class _SettingsPageState extends State<SettingsPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Text(
-                "To connect a new device, tap on the Settings gear to pair in phone's Bluetooth settings, then return and hit Refresh.",
+                l10n.printerPairingNote,
                 style: TextStyle(
                     fontSize: 11,
                     fontStyle: FontStyle.italic,
                     color: Colors.grey[500]),
               ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Language Section
+            _buildSectionHeader(l10n.language),
+            _buildListGroup(
+              children: [
+                _buildLanguageSelector(l10n),
+              ],
             ),
 
             const SizedBox(height: 48),
@@ -220,11 +232,86 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Widget _buildLanguageSelector(AppLocalizations l10n) {
+    return BlocBuilder<LocaleCubit, Locale>(
+      builder: (context, locale) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.chooseAppLanguage,
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildLanguageOption(
+                      label: l10n.english,
+                      isSelected: locale.languageCode == 'en',
+                      onTap: () => context
+                          .read<LocaleCubit>()
+                          .setLocale(const Locale('en')),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildLanguageOption(
+                      label: l10n.arabic,
+                      isSelected: locale.languageCode == 'ar',
+                      onTap: () => context
+                          .read<LocaleCubit>()
+                          .setLocale(const Locale('ar')),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLanguageOption({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTheme.primaryColor
+              : AppTheme.primaryColor.withOpacity(0.07),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected
+                ? AppTheme.primaryColor
+                : Colors.grey[300]!,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            color: isSelected ? Colors.white : Colors.black87,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: Align(
-        alignment: Alignment.centerLeft,
+        alignment: AlignmentDirectional.centerStart,
         child: Text(
           title.toUpperCase(),
           style: const TextStyle(
@@ -273,7 +360,7 @@ class _SettingsPageState extends State<SettingsPage> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                color: AppTheme.primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: AppTheme.primaryColor, size: 20),

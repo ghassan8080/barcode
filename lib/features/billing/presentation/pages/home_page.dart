@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vibration/vibration.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../billing/presentation/bloc/billing_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/barcode_validator.dart';
+import '../../../../core/utils/barcode_scan_guard.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../domain/entities/cart_item.dart';
 
@@ -25,8 +28,7 @@ class _HomePageState extends State<HomePage> {
   bool _isCameraOn = true;
   bool _isFlashOn = false;
 
-  // Cooldown mapping to prevent rapid firing of the same barcode
-  final Map<String, DateTime> _lastScanTimes = {};
+  final BarcodeScanGuard _scanGuard = BarcodeScanGuard();
 
   @override
   void dispose() {
@@ -36,38 +38,27 @@ class _HomePageState extends State<HomePage> {
 
   void _onDetect(BarcodeCapture capture) async {
     final List<Barcode> barcodes = capture.barcodes;
-    final now = DateTime.now();
-
     for (final barcode in barcodes) {
-      if (barcode.rawValue != null) {
-        final rawValue = barcode.rawValue!;
+      final rawValue = validScannedBarcode(barcode.rawValue);
+      if (rawValue == null) continue;
+      if (!_scanGuard.shouldProcess(rawValue)) continue;
 
-        // Cooldown logic: 2 seconds per identical barcode
-        if (_lastScanTimes.containsKey(rawValue)) {
-          final lastScan = _lastScanTimes[rawValue]!;
-          if (now.difference(lastScan).inSeconds < 2) {
-            continue;
-          }
-        }
-
-        _lastScanTimes[rawValue] = now;
-
-        // Vibrate
-        final hasVibrator = await Vibration.hasVibrator();
-        if (hasVibrator == true) {
-          Vibration.vibrate();
-        }
-
-        if (mounted) {
-          context.read<BillingBloc>().add(ScanBarcodeEvent(rawValue));
-        }
-        break; // Process one barcode at a time per frame
+      // Vibrate
+      final hasVibrator = await Vibration.hasVibrator();
+      if (hasVibrator == true) {
+        Vibration.vibrate();
       }
+
+      if (mounted) {
+        context.read<BillingBloc>().add(ScanBarcodeEvent(rawValue));
+      }
+      break; // Process one barcode at a time per frame
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: BlocListener<BillingBloc, BillingState>(
         listenWhen: (previous, current) =>
@@ -85,22 +76,22 @@ class _HomePageState extends State<HomePage> {
         },
         child: Stack(
           children: [
-            // SCANNER VIEW (TOP 50%)
+            // SCANNER VIEW (TOP 40%)
             Positioned(
               top: 0,
               left: 0,
               right: 0,
               height: MediaQuery.of(context).size.height * 0.4,
-              child: _buildScannerSection(),
+              child: _buildScannerSection(l10n),
             ),
 
-            // BOTTOM PANEL (BOTTOM 50% + OVERLAP)
+            // BOTTOM PANEL (BOTTOM 60% + OVERLAP)
             Positioned(
               top: (MediaQuery.of(context).size.height * 0.4) - 24, // overlap
               left: 0,
               right: 0,
               bottom: 0,
-              child: _buildBottomPanel(),
+              child: _buildBottomPanel(l10n),
             ),
           ],
         ),
@@ -116,13 +107,13 @@ class _HomePageState extends State<HomePage> {
                   if (_isCameraOn && mounted) _scannerController.start();
                 },
           icon: Icons.payment,
-          label: 'Review Order',
+          label: l10n.reviewOrder,
         );
       }),
     );
   }
 
-  Widget _buildScannerSection() {
+  Widget _buildScannerSection(AppLocalizations l10n) {
     return Container(
       color: Colors.black,
       child: Stack(
@@ -132,9 +123,9 @@ class _HomePageState extends State<HomePage> {
             controller: _scannerController,
             onDetect: _onDetect,
           ),
-          if (!_isCameraOn) _buildCameraOffState(),
+          if (!_isCameraOn) _buildCameraOffState(l10n),
 
-          // Overlay Actions (Top Right)
+          // Overlay Actions (Top Right - directional for RTL)
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             right: 16,
@@ -161,7 +152,6 @@ class _HomePageState extends State<HomePage> {
                 if (_isCameraOn) const SizedBox(height: 16),
                 _buildOverlayButton(
                   icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
-                  // color:  Colors.white24 ,
                   onPressed: () {
                     setState(() {
                       _isCameraOn = !_isCameraOn;
@@ -203,7 +193,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCameraOffState() {
+  Widget _buildCameraOffState(AppLocalizations l10n) {
     return Container(
       color: const Color(0xFF1E293B), // slate-800
       child: Column(
@@ -221,18 +211,18 @@ class _HomePageState extends State<HomePage> {
                 const Icon(Icons.videocam_off, color: Colors.white, size: 32),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Camera is turned off',
-            style: TextStyle(
+          Text(
+            l10n.cameraIsTurnedOff,
+            style: const TextStyle(
                 color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              'Turn on your camera to start scanning barcodes and items automatically.',
+              l10n.turnOnCameraMessage,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70, fontSize: 12),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
           ),
           const SizedBox(height: 24),
@@ -245,8 +235,8 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             icon: const Icon(Icons.videocam),
-            label: const Text('Turn on Camera',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            label: Text(l10n.turnOnCamera,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             onPressed: () {
               setState(() => _isCameraOn = true);
               _scannerController.start();
@@ -305,7 +295,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildBottomPanel() {
+  Widget _buildBottomPanel(AppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
@@ -323,7 +313,7 @@ class _HomePageState extends State<HomePage> {
             height: 4,
             margin: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.grey.withValues(alpha: 0.3),
+              color: Colors.grey.withOpacity(0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -342,10 +332,10 @@ class _HomePageState extends State<HomePage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Scanned Items',
-                            style: TextStyle(
+                        Text(l10n.scannedItems,
+                            style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.w600)),
-                        Text('$totalItems items total',
+                        Text(l10n.itemsTotal(totalItems),
                             style: const TextStyle(
                                 fontSize: 12, color: Colors.grey)),
                       ],
@@ -353,8 +343,8 @@ class _HomePageState extends State<HomePage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text('TOTAL PRICE',
-                            style: TextStyle(
+                        Text(l10n.totalPrice,
+                            style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.grey,
@@ -381,7 +371,7 @@ class _HomePageState extends State<HomePage> {
               BlocBuilder<BillingBloc, BillingState>(
                 builder: (context, state) {
                   if (state.cartItems.isEmpty) {
-                    return _buildEmptyCart();
+                    return _buildEmptyCart(l10n);
                   }
 
                   return ListView.separated(
@@ -404,7 +394,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildEmptyCart() {
+  Widget _buildEmptyCart(AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -421,15 +411,16 @@ class _HomePageState extends State<HomePage> {
                 Icon(Icons.shopping_basket, size: 40, color: Colors.grey[300]),
           ),
           const SizedBox(height: 16),
-          const Text('List is empty',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Text(l10n.listIsEmpty,
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 8),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 40),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Text(
-              'Scanned items will appear here as you scan them with the camera above.',
+              l10n.emptyCartMessage,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
             ),
           ),
         ],
@@ -453,7 +444,6 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        spacing: 1,
         children: [
           Expanded(
             child: Column(
@@ -531,7 +521,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-  // A floating Details/Checkout Button at the very bottom
-  // Added a Stack wrapper below to overlay this button
 }

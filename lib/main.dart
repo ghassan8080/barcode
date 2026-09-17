@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'config/routes/app_routes.dart';
 import 'core/data/hive_database.dart';
 import 'core/service_locator.dart' as di;
 import 'core/theme/app_theme.dart';
+import 'core/localization/locale_cubit.dart';
 import 'features/billing/presentation/bloc/billing_bloc.dart';
 import 'features/product/presentation/bloc/product_bloc.dart';
 import 'features/shop/presentation/bloc/shop_bloc.dart';
@@ -33,12 +36,29 @@ class MyApp extends StatelessWidget {
                 BillingBloc(getProductByBarcodeUseCase: di.sl())),
         BlocProvider<PrinterBloc>(
             create: (context) => di.sl<PrinterBloc>()..add(InitPrinterEvent())),
+        BlocProvider<LocaleCubit>(
+            create: (context) => LocaleCubit()),
       ],
-      child: MaterialApp.router(
-        title: 'Billing App',
-        theme: AppTheme.lightTheme,
-        routerConfig: router,
-        debugShowCheckedModeBanner: false,
+      child: BlocBuilder<LocaleCubit, Locale>(
+        builder: (context, locale) {
+          return MaterialApp.router(
+            title: 'Billing App',
+            theme: AppTheme.lightTheme,
+            routerConfig: router,
+            debugShowCheckedModeBanner: false,
+            locale: locale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('ar'),
+            ],
+          );
+        },
       ),
     );
   }

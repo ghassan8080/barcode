@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../bloc/product_bloc.dart';
 import '../../domain/entities/product.dart';
@@ -41,14 +42,14 @@ class _ProductListPageState extends State<ProductListPage> {
       if (matchedProduct != null) {
         _searchController.text = matchedProduct.name;
       } else {
-        _searchController.text =
-            barcode; // If not found, just put barcode in search
+        _searchController.text = barcode;
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final borderColor = Colors.grey[100]!;
 
     return Scaffold(
@@ -60,8 +61,8 @@ class _ProductListPageState extends State<ProductListPage> {
               size: 28, color: Theme.of(context).primaryColor),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Product Management',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(l10n.productManagement,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
       ),
       body: Column(
@@ -81,20 +82,21 @@ class _ProductListPageState extends State<ProductListPage> {
                           controller: _searchController,
                           textCapitalization: TextCapitalization.words,
                           decoration: InputDecoration(
-                            hintText: 'Scan or enter barcode',
+                            hintText: l10n.scanOrEnterBarcode,
                             prefixIcon: Icon(
                               Icons.search,
                               color: Colors.grey[400],
                             ),
                           ),
-                          validator:
-                              AppValidators.required('Please enter a barcode'),
+                          validator: AppValidators.required(
+                              l10n.pleaseEnterBarcode),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Container(
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                          color:
+                              AppTheme.primaryColor.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: IconButton(
@@ -107,8 +109,9 @@ class _ProductListPageState extends State<ProductListPage> {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  const Text('Tap the icon to open camera scanner',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF4C669A))),
+                  Text(l10n.tapToScan,
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFF4C669A))),
                 ],
               );
             }),
@@ -143,8 +146,7 @@ class _ProductListPageState extends State<ProductListPage> {
                   if (state.status == ProductStatus.error) {
                     return Center(child: Text('Error: ${state.message}'));
                   }
-                  return const Center(
-                      child: Text('No products found. Add some!'));
+                  return Center(child: Text(l10n.noProductsFound));
                 }
 
                 final filteredProducts = state.products
@@ -154,8 +156,7 @@ class _ProductListPageState extends State<ProductListPage> {
                     .toList();
 
                 if (filteredProducts.isEmpty) {
-                  return const Center(
-                      child: Text('No products match your search.'));
+                  return Center(child: Text(l10n.noProductsMatchSearch));
                 }
 
                 return ListView.separated(
@@ -208,7 +209,7 @@ class _ProductListPageState extends State<ProductListPage> {
                               Container(
                                 decoration: BoxDecoration(
                                   color: AppTheme.primaryColor
-                                      .withValues(alpha: 0.1),
+                                      .withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: IconButton(
@@ -217,7 +218,8 @@ class _ProductListPageState extends State<ProductListPage> {
                                   constraints: const BoxConstraints(),
                                   padding: const EdgeInsets.all(8),
                                   onPressed: () {
-                                    context.push('/products/edit/${product.id}',
+                                    context.push(
+                                        '/products/edit/${product.id}',
                                         extra: product);
                                   },
                                 ),
@@ -225,16 +227,18 @@ class _ProductListPageState extends State<ProductListPage> {
                               const SizedBox(width: 8),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withValues(alpha: 0.1),
+                                  color: Colors.red.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: IconButton(
-                                  icon: const Icon(Icons.delete_outline_rounded,
-                                      color: Colors.red, size: 20),
+                                  icon: const Icon(
+                                      Icons.delete_outline_rounded,
+                                      color: Colors.red,
+                                      size: 20),
                                   constraints: const BoxConstraints(),
                                   padding: const EdgeInsets.all(8),
                                   onPressed: () =>
-                                      _confirmDelete(context, product),
+                                      _confirmDelete(context, product, l10n),
                                 ),
                               ),
                             ],
@@ -259,24 +263,26 @@ class _ProductListPageState extends State<ProductListPage> {
     );
   }
 
-  void _confirmDelete(BuildContext context, Product product) {
+  void _confirmDelete(
+      BuildContext context, Product product, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (innerContext) {
         return AlertDialog(
-          title: const Text('Delete Product'),
-          content: Text('Are you sure you want to delete ${product.name}?'),
+          title: Text(l10n.deleteProduct),
+          content: Text(l10n.deleteProductConfirm(product.name)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(innerContext),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () {
                 context.read<ProductBloc>().add(DeleteProduct(product.id));
                 Navigator.pop(innerContext);
               },
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              child: Text(l10n.delete,
+                  style: const TextStyle(color: Colors.red)),
             ),
           ],
         );
