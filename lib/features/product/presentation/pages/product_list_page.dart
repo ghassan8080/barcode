@@ -4,6 +4,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../bloc/product_bloc.dart';
 import '../../domain/entities/product.dart';
+import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/app_validators.dart';
 
@@ -195,7 +196,7 @@ class _ProductListPageState extends State<ProductListPage> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '₹${product.price.toStringAsFixed(2)}',
+                                  context.watch<CurrencyCubit>().format(product.price),
                                   style: TextStyle(
                                       fontWeight: FontWeight.w500,
                                       color: Colors.grey[600]),

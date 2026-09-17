@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../bloc/product_bloc.dart';
 import '../../domain/entities/product.dart';
+import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/app_validators.dart';
 
@@ -138,10 +139,10 @@ class _AddProductPageState extends State<AddProductPage> {
                   TextFormField(
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: '0.00',
-                      prefixText: '₹ ',
-                      prefixStyle: TextStyle(
+                      prefixText: '${context.watch<CurrencyCubit>().state} ',
+                      prefixStyle: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                           color: Colors.black),

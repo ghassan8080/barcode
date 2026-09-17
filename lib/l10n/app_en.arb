@@ -113,5 +113,15 @@
   "error": "Error",
   "success": "Success",
   "confirm": "Confirm",
-  "continueText": "Continue"
+  "continueText": "Continue",
+  "currency": "Currency",
+  "chooseCurrency": "Choose active currency",
+  "currencySaved": "Currency saved successfully: {currency}",
+  "@currencySaved": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  }
 }

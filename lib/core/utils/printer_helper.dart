@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../currency/currency_manager.dart';
 
 class EscPos {
   static const List<int> init = [0x1B, 0x40];
@@ -111,8 +113,11 @@ class PrinterHelper {
     required List<Map<String, dynamic>> items, // Name, Qty, Price, Total
     required double total,
     required String footer,
+    String? currencySymbol,
   }) async {
     if (!_isConnected) return;
+
+    final currency = currencySymbol ?? CurrencyManager().getActiveCurrency();
 
     // Construct ESC/POS bytes manually or using helper
     List<int> bytes = [];
@@ -178,7 +183,7 @@ class PrinterHelper {
     // Total (Align Right)
     bytes += EscPos.alignRight;
     bytes += EscPos.boldOn;
-    bytes += _textToBytes('TOTAL: $total');
+    bytes += _textToBytes('TOTAL: ${total.toStringAsFixed(2)} $currency');
     bytes += EscPos.lineFeed;
     bytes += EscPos.boldOff;
     bytes += EscPos.lineFeed;
@@ -195,7 +200,7 @@ class PrinterHelper {
   }
 
   List<int> _textToBytes(String text) {
-    // Should verify encoding, but Latin-1 usually works for basic printers
-    return List.from(text.codeUnits);
+    // Encodes UTF-8 bytes to protect Arabic characters and symbols
+    return utf8.encode(text);
   }
 }

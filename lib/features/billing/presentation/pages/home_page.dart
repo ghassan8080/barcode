@@ -10,6 +10,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/barcode_validator.dart';
 import '../../../../core/utils/barcode_scan_guard.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/currency/currency_cubit.dart';
 import '../../domain/entities/cart_item.dart';
 
 class HomePage extends StatefulWidget {
@@ -350,7 +351,7 @@ class _HomePageState extends State<HomePage> {
                                 color: Colors.grey,
                                 letterSpacing: 1.2)),
                         Text(
-                          '₹${state.totalAmount.toStringAsFixed(2)}',
+                          context.watch<CurrencyCubit>().format(state.totalAmount),
                           style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
@@ -458,7 +459,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '₹${item.product.price.toStringAsFixed(2)}',
+                  context.watch<CurrencyCubit>().format(item.product.price),
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,

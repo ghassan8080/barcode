@@ -113,5 +113,15 @@
   "error": "خطأ",
   "success": "نجاح",
   "confirm": "تأكيد",
-  "continueText": "متابعة"
+  "continueText": "متابعة",
+  "currency": "العملة",
+  "chooseCurrency": "اختر العملة الافتراضية",
+  "currencySaved": "تم حفظ العملة بنجاح: {currency}",
+  "@currencySaved": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:app_settings/app_settings.dart';
 
 import '../../../../core/localization/locale_cubit.dart';
+import '../../../../core/currency/currency_cubit.dart';
+import '../../../../core/currency/currency_manager.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../shop/presentation/bloc/shop_bloc.dart';
 import '../bloc/printer_bloc.dart';
@@ -19,10 +21,13 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  String? _selectedCurrency;
+
   @override
   void initState() {
     super.initState();
     context.read<PrinterBloc>().add(InitPrinterEvent());
+    _selectedCurrency = context.read<CurrencyCubit>().state;
   }
 
   @override
@@ -217,6 +222,16 @@ class _SettingsPageState extends State<SettingsPage> {
 
             const SizedBox(height: 24),
 
+            // Currency Section
+            _buildSectionHeader(l10n.currency),
+            _buildListGroup(
+              children: [
+                _buildCurrencySelector(l10n),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
             // Language Section
             _buildSectionHeader(l10n.language),
             _buildListGroup(
@@ -229,6 +244,99 @@ class _SettingsPageState extends State<SettingsPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCurrencySelector(AppLocalizations l10n) {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    return BlocBuilder<CurrencyCubit, String>(
+      builder: (context, activeCurrency) {
+        final currentSelection = _selectedCurrency ?? activeCurrency;
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.chooseCurrency,
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: CurrencyManager.supportedCurrencies
+                            .any((c) => c.symbol == currentSelection)
+                        ? currentSelection
+                        : CurrencyManager.defaultCurrency,
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down),
+                    items: CurrencyManager.supportedCurrencies.map((c) {
+                      final displayText = isArabic ? c.labelAr : c.labelEn;
+                      return DropdownMenuItem<String>(
+                        value: c.symbol,
+                        child: Text(
+                          displayText,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() {
+                          _selectedCurrency = val;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    final symbol = _selectedCurrency ?? CurrencyManager.defaultCurrency;
+                    context.read<CurrencyCubit>().setCurrency(symbol);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          l10n.currencySaved(symbol),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        backgroundColor: Colors.green,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    l10n.saveChanges,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

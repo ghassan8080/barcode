@@ -7,6 +7,7 @@ import 'core/data/hive_database.dart';
 import 'core/service_locator.dart' as di;
 import 'core/theme/app_theme.dart';
 import 'core/localization/locale_cubit.dart';
+import 'core/currency/currency_cubit.dart';
 import 'features/billing/presentation/bloc/billing_bloc.dart';
 import 'features/product/presentation/bloc/product_bloc.dart';
 import 'features/shop/presentation/bloc/shop_bloc.dart';
@@ -38,6 +39,8 @@ class MyApp extends StatelessWidget {
             create: (context) => di.sl<PrinterBloc>()..add(InitPrinterEvent())),
         BlocProvider<LocaleCubit>(
             create: (context) => LocaleCubit()),
+        BlocProvider<CurrencyCubit>(
+            create: (context) => CurrencyCubit()),
       ],
       child: BlocBuilder<LocaleCubit, Locale>(
         builder: (context, locale) {

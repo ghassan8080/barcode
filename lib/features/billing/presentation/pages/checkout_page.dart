@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 
 import '../../../shop/presentation/bloc/shop_bloc.dart';
+import '../../../../core/currency/currency_cubit.dart';
 import '../bloc/billing_bloc.dart';
 
 class CheckoutPage extends StatefulWidget {
@@ -121,11 +122,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                             TextAlign.start,
                                           ),
                                           _buildDataCell(
-                                              '₹${item.product.price.toStringAsFixed(2)}',
+                                              context.watch<CurrencyCubit>().format(item.product.price),
                                               TextAlign.end,
                                               isSubtitle: true),
                                           _buildDataCell(
-                                              '₹${item.total.toStringAsFixed(2)}',
+                                              context.watch<CurrencyCubit>().format(item.total),
                                               TextAlign.end,
                                               isBold: true),
                                         ],
@@ -208,7 +209,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       ),
                                     ),
                                     Text(
-                                      '₹${billingState.totalAmount.toStringAsFixed(2)}',
+                                      context.watch<CurrencyCubit>().format(billingState.totalAmount),
                                       style: const TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
